@@ -19,17 +19,17 @@ const (
 func parseTraining(data string) (int, string, time.Duration, error) {
 	parts := strings.Split(data, ",")
 	if len(parts) != 3 {
-		return 0, " ", 0, fmt.Errorf("ошибка в формате данных")
+		return 0, " ", 0, fmt.Errorf("error in the data format")
 	}
 
 	steps, err := strconv.Atoi(strings.TrimSpace(parts[0]))
 	if err != nil {
-		return 0, " ", 0, fmt.Errorf("не удается преобразовать шаги")
+		return 0, " ", 0, fmt.Errorf("steps cannot be converted")
 	}
 
 	duration, err := time.ParseDuration(strings.TrimSpace(parts[2]))
 	if err != nil {
-		return 0, " ", 0, fmt.Errorf("не удается преобразовать время")
+		return 0, " ", 0, fmt.Errorf("can't convert time")
 	}
 
 	return steps, parts[1], duration, nil
@@ -41,7 +41,7 @@ func parseTraining(data string) (int, string, time.Duration, error) {
 //
 // steps int — количество совершенных действий (число шагов при ходьбе и беге).
 func distance(steps int) float64 {
-	distanceMeters := float64(steps) * lenStep / float64(mInKm)
+	distanceMeters := float64(steps) * lenStep / mInKm
 	return distanceMeters
 }
 
@@ -69,15 +69,14 @@ func meanSpeed(steps int, duration time.Duration) float64 {
 func TrainingInfo(data string, weight, height float64) string {
 	steps, actInfo, duration, err := parseTraining(data)
 	if err != nil {
-		fmt.Println("Ошибка:", err)
-		return " "
+		return err.Error()
 	}
 	if steps <= 0 || duration.Hours() <= 0 {
-		return "Некорректные данные о тренировке"
+		return "incorrect training data"
 	}
 
 	dist := distance(steps)
-	speed := meanSpeed(steps, duration) / 60 / 1000 * 3600
+	speed := meanSpeed(steps, duration)
 
 	calories := 0.0
 	switch actInfo {
@@ -86,7 +85,7 @@ func TrainingInfo(data string, weight, height float64) string {
 	case "Бег":
 		calories = RunningSpentCalories(steps, weight, duration)
 	default:
-		return "неизвестный тип тренировки"
+		return "unknown type of training"
 	}
 
 	result := fmt.Sprintf(`Тип тренировки: %s
